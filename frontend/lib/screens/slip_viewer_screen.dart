@@ -1,0 +1,179 @@
+import 'package:flutter/material';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import '../models/document_model.dart';
+import '../theme.dart';
+
+class SlipViewerScreen extends StatefulWidget {
+  final DocumentModel document;
+
+  const SlipViewerScreen({
+    super.key,
+    required this.document,
+  });
+
+  @override
+  State<SlipViewerScreen> createState() => _SlipViewerScreenState();
+}
+
+class _SlipViewerScreenState extends State<SlipViewerScreen> {
+  final PdfViewerController _pdfViewerController = PdfViewerController();
+  bool _isLoading = true;
+  int _pageCount = 0;
+  int _currentPage = 1;
+
+  @override
+  Widget build(BuildContext context) {
+    final String slipPath = (widget.document.slipUrl != null && widget.document.slipUrl!.isNotEmpty)
+        ? widget.document.slipUrl!
+        : 'assets/docs/sample.pdf';
+
+    final isAsset = !slipPath.startsWith('http');
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Correction Slip Viewer'),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isDark 
+                ? [AppTheme.bgDark, const Color(0xFF1E293B)] 
+                : [Colors.white, const Color(0xFFEFF6FF)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Column(
+          children: [
+            // Slip Summary Banner
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Card(
+                color: AppTheme.secondaryAmber.withOpacity(0.1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: AppTheme.secondaryAmber, width: 1),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline_rounded, color: AppTheme.secondaryAmber, size: 28),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.document.title,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Category: ${widget.document.category} | Zone: ${widget.document.zone}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark ? AppTheme.textDarkSecondary : AppTheme.textLightSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // PDF Viewer Area
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Container(
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF334155) : Colors.grey.shade300,
+                    ),
+                  ),
+                  child: Stack(
+                    children: [
+                      isAsset
+                          ? SfPdfViewer.asset(
+                              slipPath,
+                              controller: _pdfViewerController,
+                              onDocumentLoaded: (PdfDocumentLoadedDetails details) {
+                                setState(() {
+                                  _isLoading = false;
+                                  _pageCount = details.document.pages.count;
+                                });
+                              },
+                              onPageChanged: (PdfPageChangedDetails details) {
+                                setState(() {
+                                  _currentPage = details.newPageNumber;
+                                });
+                              },
+                            )
+                          : SfPdfViewer.network(
+                              slipPath,
+                              controller: _pdfViewerController,
+                              onDocumentLoaded: (PdfDocumentLoadedDetails details) {
+                                setState(() {
+                                  _isLoading = false;
+                                  _pageCount = details.document.pages.count;
+                                });
+                              },
+                              onPageChanged: (PdfPageChangedDetails details) {
+                                setState(() {
+                                  _currentPage = details.newPageNumber;
+                                });
+                              },
+                            ),
+                      if (_isLoading)
+                        const Center(child: CircularProgressIndicator()),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Page controller
+            if (_pageCount > 0)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                color: Theme.of(context).cardColor,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Slip Page $_currentPage of $_pageCount',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.chevron_left_rounded),
+                          onPressed: _currentPage > 1
+                              ? () => _pdfViewerController.previousPage()
+                              : null,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.chevron_right_rounded),
+                          onPressed: _currentPage < _pageCount
+                              ? () => _pdfViewerController.nextPage()
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
