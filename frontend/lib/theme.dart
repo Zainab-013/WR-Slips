@@ -1,36 +1,36 @@
-import 'package:flutter/material';
+import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Brand Colors
-  static const Color primaryBlue = Color(0xFF1E3A8A); // Deep Navy Blue
-  static const Color secondaryAmber = Color(0xFFF59E0B); // Amber Gold
-  static const Color accentTeal = Color(0xFF0D9488); // Teal Accent
+  // Soothing Brand Colors
+  static const Color primaryBlue = Color(0xFF2E5B82); // Soothing Slate-Ocean Blue
+  static const Color secondaryAmber = Color(0xFFD1A153); // Soothing Silk Gold
+  static const Color accentTeal = Color(0xFF4A8B82); // Soothing Sage Teal
   
-  static const Color bgDark = Color(0xFF0F172A); // Slate Dark Background
-  static const Color cardDark = Color(0xFF1E293B); // Slate Card Background
-  static const Color textDarkPrimary = Color(0xFFF8FAFC);
+  static const Color bgDark = Color(0xFF121B22); // Soothing Dark Slate
+  static const Color cardDark = Color(0xFF1B2730); // Soothing Dark Slate Card
+  static const Color textDarkPrimary = Color(0xFFF1F5F9);
   static const Color textDarkSecondary = Color(0xFF94A3B8);
 
-  static const Color bgLight = Color(0xFFF8FAFC); // Light Gray Background
+  static const Color bgLight = Color(0xFFF4F7F6); // Soothing Off-White/Soft Mint Background
   static const Color cardLight = Color(0xFFFFFFFF);
-  static const Color textLightPrimary = Color(0xFF0F172A);
-  static const Color textLightSecondary = Color(0xFF475569);
+  static const Color textLightPrimary = Color(0xFF1E293B);
+  static const Color textLightSecondary = Color(0xFF64748B);
 
-  // Gradient definitions
+  // Soothing Gradient definitions
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
+    colors: [Color(0xFF2E5B82), Color(0xFF4A7D9D)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient accentGradient = LinearGradient(
-    colors: [Color(0xFF0D9488), Color(0xFF14B8A6)],
+    colors: [Color(0xFF4A8B82), Color(0xFF679E96)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient amberGradient = LinearGradient(
-    colors: [Color(0xFFD97706), Color(0xFFF59E0B)],
+    colors: [Color(0xFFC49547), Color(0xFFE2B770)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -50,30 +50,30 @@ class AppTheme {
         onPrimary: Colors.white,
         onSecondary: Colors.white,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: cardLight,
         elevation: 2,
         shadowColor: Colors.black.withOpacity(0.05),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: Colors.grey.shade300),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: Colors.grey.shade200),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: primaryBlue, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Colors.redAccent),
         ),
       ),
@@ -82,7 +82,7 @@ class AppTheme {
           backgroundColor: primaryBlue,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           elevation: 0,
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
@@ -116,29 +116,29 @@ class AppTheme {
         onPrimary: Colors.white,
         onSecondary: Colors.white,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: cardDark,
         elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: cardDark,
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Color(0xFF334155)),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Color(0xFF1E293B)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: primaryBlue, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Colors.redAccent),
         ),
       ),
@@ -147,7 +147,7 @@ class AppTheme {
           backgroundColor: primaryBlue,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           elevation: 0,
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),

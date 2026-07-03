@@ -1,4 +1,4 @@
-import 'package:flutter/material';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
 import '../theme.dart';
@@ -12,25 +12,25 @@ class ZoneSelectionScreen extends StatelessWidget {
       'name': 'Western Railway',
       'code': 'WR',
       'icon': Icons.explore_rounded,
-      'color': Color(0xFF1E3A8A),
+      'color': Color(0xFF2E5B82),
     },
     {
       'name': 'Central Railway',
       'code': 'CR',
       'icon': Icons.adjust_rounded,
-      'color': Color(0xFFB91C1C),
+      'color': Color(0xFFC05656),
     },
     {
       'name': 'Northern Railway',
       'code': 'NR',
       'icon': Icons.north_rounded,
-      'color': Color(0xFF047857),
+      'color': Color(0xFF4A8B82),
     },
     {
       'name': 'Southern Railway',
       'code': 'SR',
       'icon': Icons.south_rounded,
-      'color': Color(0xFF7C3AED),
+      'color': Color(0xFF6B5B95),
     },
   ];
 

@@ -1,4 +1,4 @@
-import 'package:flutter/material';
+import 'package:flutter/material.dart';
 import 'models/user_model.dart';
 import 'models/document_model.dart';
 import 'repositories/auth_repository.dart';
@@ -19,9 +19,16 @@ class AppState with ChangeNotifier {
   List<DocumentModel> get documents => _documents;
   bool get isLoading => _isLoading;
   ThemeMode get themeMode => _themeMode;
+  String _language = 'English';
+  String get language => _language;
 
   AuthRepository get authRepository => _authRepository;
   DocumentRepository get documentRepository => _documentRepository;
+
+  void setLanguage(String lang) {
+    _language = lang;
+    notifyListeners();
+  }
 
   // Initialize and check current user session
   Future<void> initialize() async {

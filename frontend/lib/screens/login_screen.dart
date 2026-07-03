@@ -1,15 +1,15 @@
-import 'package:flutter/material';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
 import '../theme.dart';
 import 'register_screen.dart';
-import 'role_selection_screen.dart';
 import 'admin_home_screen.dart';
 import 'user_home_screen.dart';
 import 'zone_selection_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final String? selectedRole;
+  const LoginScreen({super.key, this.selectedRole});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -20,6 +20,18 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.selectedRole == 'admin') {
+      _emailController.text = 'admin@wr.gov.in';
+      _passwordController.text = 'admin123';
+    } else if (widget.selectedRole == 'user') {
+      _emailController.text = 'user@wr.gov.in';
+      _passwordController.text = 'user123';
+    }
+  }
 
   @override
   void dispose() {
@@ -120,10 +132,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Sign in to access official railway books & slips',
+                      widget.selectedRole == 'admin'
+                          ? 'Sign in to access the Admin Console'
+                          : widget.selectedRole == 'user'
+                              ? 'Sign in to access the User Portal'
+                              : 'Sign in to access official railway books & slips',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
+                        fontWeight: FontWeight.w500,
                         color: isDark ? AppTheme.textDarkSecondary : AppTheme.textLightSecondary,
                       ),
                     ),

@@ -1,10 +1,11 @@
-import 'package:flutter/material';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
 import '../theme.dart';
 import 'manage_documents_screen.dart';
 import 'add_edit_document_screen.dart';
-import 'role_selection_screen.dart';
+import 'profile_screen.dart';
+import 'settings_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -77,11 +78,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             onPressed: () => appState.toggleThemeMode(),
           ),
           IconButton(
-            icon: const Icon(Icons.swap_horiz_rounded),
-            tooltip: 'Switch Role',
+            icon: const Icon(Icons.account_circle_outlined),
+            tooltip: 'My Profile',
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const RoleSelectionScreen()),
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
               );
             },
           ),
@@ -107,12 +108,22 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               accountEmail: Text(appState.currentUser?.email ?? 'admin@wr.gov.in'),
             ),
             ListTile(
-              leading: const Icon(Icons.swap_horiz_rounded, color: AppTheme.primaryBlue),
-              title: const Text('Switch Role to User'),
+              leading: const Icon(Icons.account_circle_outlined, color: AppTheme.primaryBlue),
+              title: const Text('My Profile'),
               onTap: () {
                 Navigator.of(context).pop();
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const RoleSelectionScreen()),
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings_outlined, color: AppTheme.primaryBlue),
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
                 );
               },
             ),

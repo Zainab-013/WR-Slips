@@ -3,14 +3,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/document_model.dart';
 
 class DocumentRepository {
-  static const String _docsDbKey = 'documents_database';
+  static const String _docsDbKey = 'documents_database_v2';
 
   // Seed documents
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     if (!prefs.containsKey(_docsDbKey)) {
       final defaultDocs = [
-        // GR & SR
+        // GR & SR Main PDF Book
         DocumentModel(
           id: 'doc_1',
           title: 'General Rules & Subsidiary Rules (GR&SR) 2020 Edition',
@@ -22,18 +22,39 @@ class DocumentRepository {
           createdAt: DateTime.now().subtract(const Duration(days: 300)),
           updatedAt: DateTime.now().subtract(const Duration(days: 300)),
         ),
+        // Correction Slip Index (represented by 'i')
         DocumentModel(
-          id: 'doc_2',
-          title: 'Correction Slip No. 12 to GR&SR',
+          id: 'slip_index',
+          title: 'Correction Slip Index to GR&SR',
           category: 'GR & SR',
           zone: 'Western Railway',
           pdfUrl: null,
           slipUrl: 'assets/docs/sample.pdf',
           uploadedBy: 'Railway Admin',
-          createdAt: DateTime.now().subtract(const Duration(days: 45)),
-          updatedAt: DateTime.now().subtract(const Duration(days: 45)),
+          createdAt: DateTime.now().subtract(const Duration(days: 200)),
+          updatedAt: DateTime.now().subtract(const Duration(days: 200)),
         ),
-        // O.M
+      ];
+
+      // Dynamically generate correction slips 1 to 31 for GR & SR
+      for (int i = 1; i <= 31; i++) {
+        defaultDocs.add(
+          DocumentModel(
+            id: 'slip_$i',
+            title: 'Correction Slip No. $i to GR&SR',
+            category: 'GR & SR',
+            zone: 'Western Railway',
+            pdfUrl: null,
+            slipUrl: 'assets/docs/sample.pdf',
+            uploadedBy: 'Railway Admin',
+            createdAt: DateTime.now().subtract(Duration(days: 100 - i)),
+            updatedAt: DateTime.now().subtract(Duration(days: 100 - i)),
+          ),
+        );
+      }
+
+      // Add O.M
+      defaultDocs.addAll([
         DocumentModel(
           id: 'doc_3',
           title: 'Operating Manual (OM) Chapter 1-5',
@@ -103,7 +124,7 @@ class DocumentRepository {
           createdAt: DateTime.now().subtract(const Duration(days: 50)),
           updatedAt: DateTime.now().subtract(const Duration(days: 50)),
         ),
-      ];
+      ]);
 
       final docsJson = defaultDocs.map((d) => d.toJson()).toList();
       await prefs.setString(_docsDbKey, jsonEncode(docsJson));

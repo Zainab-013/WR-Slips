@@ -1,10 +1,6 @@
-import 'package:flutter/material';
-import 'package:provider/provider.dart';
-import '../app_state.dart';
+import 'package:flutter/material.dart';
 import '../theme.dart';
-import 'zone_selection_screen.dart';
-import 'admin_home_screen.dart';
-import 'user_home_screen.dart';
+import 'login_screen.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
@@ -12,14 +8,13 @@ class RoleSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final appState = Provider.of<AppState>(context);
 
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: isDark 
-                ? [AppTheme.bgDark, const Color(0xFF1E293B)] 
+            colors: isDark
+                ? [AppTheme.bgDark, const Color(0xFF1E293B)]
                 : [Colors.white, const Color(0xFFEFF6FF)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -27,88 +22,91 @@ class RoleSelectionScreen extends StatelessWidget {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(
-                  Icons.account_circle_outlined,
-                  size: 80,
-                  color: AppTheme.primaryBlue,
+                const Spacer(),
+                // Brand Header
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryBlue.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.train_rounded,
+                      size: 64,
+                      color: AppTheme.primaryBlue,
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 Text(
-                  'Select Your Role',
+                  'WR & SLIPS',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 28,
+                    fontSize: 32,
                     fontWeight: FontWeight.w900,
-                    color: isDark ? Colors.white : AppTheme.textLightPrimary,
+                    letterSpacing: 2,
+                    color: isDark ? Colors.white : AppTheme.primaryBlue,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Configure your profile based on your access level',
+                  'General Rules & Correction Slips System',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
                     color: isDark ? AppTheme.textDarkSecondary : AppTheme.textLightSecondary,
                   ),
                 ),
-                const SizedBox(height: 48),
+                const Spacer(),
+                
                 // User Card
                 _buildRoleCard(
                   context: context,
-                  title: 'Railway User',
-                  description: 'Access railway rules, view latest correction slips, and download GR & SR reference files.',
+                  title: 'User Portal',
+                  subtitle: 'Read official rule books, access correction slips, and download PDF documents offline.',
                   icon: Icons.menu_book_rounded,
-                  color: AppTheme.accentTeal,
-                  onTap: () async {
-                    // Update user role if changed (simulation)
-                    if (appState.currentUser != null) {
-                      final updated = appState.currentUser!.copyWith(role: 'user');
-                      // Update state (we can register or login directly, or just proceed)
-                      if (appState.selectedZone != null) {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (_) => const UserHomeScreen()),
-                        );
-                      } else {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (_) => const ZoneSelectionScreen()),
-                        );
-                      }
-                    }
+                  gradient: AppTheme.primaryGradient,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const LoginScreen(selectedRole: 'user'),
+                      ),
+                    );
                   },
-                  isDark: isDark,
                 ),
+                
                 const SizedBox(height: 20),
+                
                 // Admin Card
                 _buildRoleCard(
                   context: context,
-                  title: 'Administrator',
-                  description: 'Upload new PDF books and slips, organize categories, and manage regulatory circular data.',
+                  title: 'Admin Console',
+                  subtitle: 'Upload documents, publish correction slips, manage records, and configure system details.',
                   icon: Icons.admin_panel_settings_rounded,
-                  color: AppTheme.secondaryAmber,
+                  gradient: AppTheme.amberGradient,
                   onTap: () {
-                    if (appState.currentUser != null) {
-                      // Navigate to Admin Home
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => const AdminHomeScreen()),
-                      );
-                    }
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const LoginScreen(selectedRole: 'admin'),
+                      ),
+                    );
                   },
-                  isDark: isDark,
                 ),
-                const SizedBox(height: 40),
-                TextButton(
-                  onPressed: () async {
-                    await appState.logout();
-                    if (context.mounted) {
-                      Navigator.of(context).pushReplacementNamed('/');
-                    }
-                  },
-                  child: const Text('Sign Out & Return'),
+                
+                const Spacer(),
+                Text(
+                  'Western Railway Administration',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? Colors.white30 : Colors.black38,
+                  ),
                 ),
               ],
             ),
@@ -121,78 +119,85 @@ class RoleSelectionScreen extends StatelessWidget {
   Widget _buildRoleCard({
     required BuildContext context,
     required String title,
-    required String description,
+    required String subtitle,
     required IconData icon,
-    required Color color,
+    required LinearGradient gradient,
     required VoidCallback onTap,
-    required bool isDark,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: isDark ? AppTheme.cardDark : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          border: Border.all(
-            color: color.withOpacity(0.3),
-            width: 1.5,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
           ),
+        ],
+        border: Border.all(
+          color: isDark ? const Color(0xFF1E293B) : Colors.grey.shade100,
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                size: 32,
-                color: color,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : AppTheme.textLightPrimary,
-                    ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Row(
+              children: [
+                // Circular Gradient Icon
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    gradient: gradient,
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isDark ? AppTheme.textDarkSecondary : AppTheme.textLightSecondary,
-                      height: 1.4,
-                    ),
+                  child: Icon(
+                    icon,
+                    color: Colors.white,
+                    size: 28,
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 20),
+                // Texts
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : AppTheme.textLightPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.4,
+                          color: isDark ? AppTheme.textDarkSecondary : AppTheme.textLightSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 16,
+                  color: Colors.grey,
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: Colors.grey,
-            ),
-          ],
+          ),
         ),
       ),
     );

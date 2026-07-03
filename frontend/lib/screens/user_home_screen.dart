@@ -1,10 +1,11 @@
-import 'package:flutter/material';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app_state.dart';
 import '../theme.dart';
 import 'category_screen.dart';
 import 'zone_selection_screen.dart';
-import 'role_selection_screen.dart';
+import 'profile_screen.dart';
+import 'settings_screen.dart';
 
 class UserHomeScreen extends StatelessWidget {
   const UserHomeScreen({super.key});
@@ -14,28 +15,20 @@ class UserHomeScreen extends StatelessWidget {
       'title': 'GR & SR',
       'subtitle': 'General Rules & Subsidiary Rules',
       'icon': Icons.gavel_rounded,
-      'gradient': LinearGradient(
-        colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
+      'gradient': AppTheme.primaryGradient,
     },
     {
       'title': 'O.M',
       'subtitle': 'Operating Manual',
       'icon': Icons.settings_applications_rounded,
-      'gradient': LinearGradient(
-        colors: [Color(0xFF0F766E), Color(0xFF14B8A6)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
+      'gradient': AppTheme.accentGradient,
     },
     {
       'title': 'A.M',
       'subtitle': 'Accident Manual',
       'icon': Icons.report_problem_rounded,
       'gradient': LinearGradient(
-        colors: [Color(0xFFB91C1C), Color(0xFFEF4444)],
+        colors: [Color(0xFFC05656), Color(0xFFD98383)],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
@@ -45,7 +38,7 @@ class UserHomeScreen extends StatelessWidget {
       'subtitle': 'Block Working Manual',
       'icon': Icons.alt_route_rounded,
       'gradient': LinearGradient(
-        colors: [Color(0xFF7C3AED), Color(0xFFA78BFA)],
+        colors: [Color(0xFF6B5B95), Color(0xFF8D7FAD)],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
@@ -54,11 +47,7 @@ class UserHomeScreen extends StatelessWidget {
       'title': 'U.S.R',
       'subtitle': 'Unified Standard Schedule of Rates',
       'icon': Icons.monetization_on_rounded,
-      'gradient': LinearGradient(
-        colors: [Color(0xFFD97706), Color(0xFFF59E0B)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
+      'gradient': AppTheme.amberGradient,
     },
   ];
 
@@ -92,11 +81,11 @@ class UserHomeScreen extends StatelessWidget {
             onPressed: () => appState.toggleThemeMode(),
           ),
           IconButton(
-            icon: const Icon(Icons.swap_horiz_rounded),
-            tooltip: 'Switch Role',
+            icon: const Icon(Icons.account_circle_outlined),
+            tooltip: 'My Profile',
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const RoleSelectionScreen()),
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
               );
             },
           ),
@@ -129,13 +118,24 @@ class UserHomeScreen extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.admin_panel_settings_rounded, color: AppTheme.secondaryAmber),
-              title: const Text('Manage System (Admin)'),
-              subtitle: const Text('Access upload and document management controls'),
+              leading: const Icon(Icons.account_circle_outlined, color: AppTheme.primaryBlue),
+              title: const Text('My Profile'),
+              subtitle: const Text('View and manage account details'),
               onTap: () {
                 Navigator.of(context).pop();
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const RoleSelectionScreen()),
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings_outlined, color: AppTheme.primaryBlue),
+              title: const Text('Settings'),
+              subtitle: const Text('Languages, Help, and Privacy policies'),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
                 );
               },
             ),
