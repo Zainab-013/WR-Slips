@@ -55,20 +55,6 @@ class ManageDocumentsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Manage $categoryName'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_rounded),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => AddEditDocumentScreen(
-                    initialCategory: categoryName,
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -106,20 +92,6 @@ class ManageDocumentsScreen extends StatelessWidget {
                             const Text(
                               'No documents uploaded for this section yet.',
                               style: TextStyle(color: Colors.grey),
-                            ),
-                            const SizedBox(height: 16),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => AddEditDocumentScreen(
-                                      initialCategory: categoryName,
-                                    ),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.add_rounded),
-                              label: const Text('Add First Document'),
                             ),
                           ],
                         ),
@@ -183,6 +155,22 @@ class ManageDocumentsScreen extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 70.0, right: 16.0),
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => AddEditDocumentScreen(
+                  initialCategory: categoryName,
+                ),
+              ),
+            );
+          },
+          backgroundColor: AppTheme.primaryBlue,
+          child: const Icon(Icons.add_rounded, size: 28, color: Colors.white),
         ),
       ),
     );

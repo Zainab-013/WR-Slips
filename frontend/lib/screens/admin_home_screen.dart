@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../app_state.dart';
 import '../theme.dart';
 import 'manage_documents_screen.dart';
-import 'add_edit_document_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 
@@ -55,6 +54,60 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     },
   ];
 
+  void _showAddCategoryDialog() {
+    final titleController = TextEditingController();
+    final subtitleController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Add Category', style: TextStyle(fontWeight: FontWeight.bold)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: titleController,
+              decoration: const InputDecoration(
+                labelText: 'Category Name',
+                hintText: 'e.g. S.O.P',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: subtitleController,
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                hintText: 'e.g. Standard Operating Procedures',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final name = titleController.text.trim();
+              if (name.isEmpty) return;
+              Navigator.of(ctx).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Category "$name" created successfully!'),
+                  backgroundColor: AppTheme.accentTeal,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryBlue),
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -76,15 +129,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
             ),
             onPressed: () => appState.toggleThemeMode(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.account_circle_outlined),
-            tooltip: 'My Profile',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ProfileScreen()),
-              );
-            },
           ),
         ],
       ),
@@ -223,8 +267,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     mainAxisSpacing: 16,
                     childAspectRatio: 1.15,
                   ),
-                  itemCount: _sections.length,
+                  itemCount: _sections.length + 1,
                   itemBuilder: (context, index) {
+                    if (index == _sections.length) {
+                      return _buildAddCategoryCard(context, isDark);
+                    }
                     final section = _sections[index];
                     return InkWell(
                       onTap: () {
@@ -298,20 +345,50 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => AddEditDocumentScreen(
-                initialCategory: _sections.first['title'] as String,
+    );
+  }
+
+  Widget _buildAddCategoryCard(BuildContext context, bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark.withOpacity(0.5) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          )
+        ],
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : Colors.grey.shade300,
+          width: 2,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: _showAddCategoryDialog,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.add_circle_outline_rounded,
+                color: isDark ? Colors.white60 : Colors.grey.shade400,
+                size: 32,
               ),
-            ),
-          );
-        },
-        backgroundColor: AppTheme.primaryBlue,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Document'),
+              const SizedBox(height: 8),
+              Text(
+                'Add Category',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white70 : Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

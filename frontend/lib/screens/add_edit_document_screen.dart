@@ -256,15 +256,22 @@ class _AddEditDocumentScreenState extends State<AddEditDocumentScreen> {
     required bool isDark,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDark : Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
         border: Border.all(
           color: isAttached 
-              ? AppTheme.accentTeal.withOpacity(0.5) 
-              : (isDark ? const Color(0xFF334155) : Colors.grey.shade300),
-          width: isAttached ? 2 : 1,
+              ? AppTheme.accentTeal.withOpacity(0.6) 
+              : (isDark ? const Color(0xFF1E293B) : Colors.grey.shade100),
+          width: isAttached ? 1.5 : 1,
         ),
       ),
       child: Row(
@@ -276,17 +283,43 @@ class _AddEditDocumentScreenState extends State<AddEditDocumentScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: isDark ? Colors.white : AppTheme.textLightPrimary,
+                  ),
                 ),
+                const SizedBox(height: 6),
                 if (isAttached)
-                  const Text(
-                    'sample.pdf attached',
-                    style: TextStyle(color: AppTheme.accentTeal, fontSize: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentTeal.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.check_circle_rounded, color: AppTheme.accentTeal, size: 14),
+                        SizedBox(width: 6),
+                        Text(
+                          'rules_document.pdf',
+                          style: TextStyle(
+                            color: AppTheme.accentTeal,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   )
                 else
                   Text(
                     'No document attached',
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                    style: TextStyle(
+                      color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
+                      fontSize: 12,
+                    ),
                   ),
               ],
             ),

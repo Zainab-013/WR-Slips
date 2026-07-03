@@ -216,7 +216,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Version 1.0.0 (Production Stable)',
+                        'Version 1.0.0 ',
                         style: TextStyle(
                           fontSize: 12,
                           color: isDark ? AppTheme.textDarkSecondary : AppTheme.textLightSecondary,

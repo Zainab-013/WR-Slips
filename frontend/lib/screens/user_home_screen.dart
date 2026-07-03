@@ -80,15 +80,7 @@ class UserHomeScreen extends StatelessWidget {
             ),
             onPressed: () => appState.toggleThemeMode(),
           ),
-          IconButton(
-            icon: const Icon(Icons.account_circle_outlined),
-            tooltip: 'My Profile',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ProfileScreen()),
-              );
-            },
-          ),
+
         ],
       ),
       drawer: Drawer(
