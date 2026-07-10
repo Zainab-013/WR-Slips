@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'models/user_model.dart';
 import 'models/document_model.dart';
 import 'repositories/auth_repository.dart';
@@ -13,6 +14,21 @@ class AppState with ChangeNotifier {
   List<DocumentModel> _documents = [];
   bool _isLoading = false;
   ThemeMode _themeMode = ThemeMode.light;
+
+  bool _useRemoteApi = false;
+  bool get useRemoteApi => _useRemoteApi;
+
+  List<Map<String, dynamic>> _remoteCategories = [];
+  List<Map<String, dynamic>> get remoteCategories => _remoteCategories;
+
+  List<Map<String, dynamic>> _remoteZones = [];
+  List<Map<String, dynamic>> get remoteZones => _remoteZones;
+
+  List<DocumentModel> _remoteRecentBooks = [];
+  List<DocumentModel> get remoteRecentBooks => _remoteRecentBooks;
+
+  List<dynamic> _remoteHomeSections = [];
+  List<dynamic> get remoteHomeSections => _remoteHomeSections;
 
   UserModel? get currentUser => _currentUser;
   String? get selectedZone => _selectedZone;
@@ -30,6 +46,98 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setUseRemoteApi(bool value) async {
+    _useRemoteApi = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('use_remote_api', value);
+    
+    _isLoading = true;
+    notifyListeners();
+    
+    if (_useRemoteApi) {
+      await loadRemoteCommonData();
+    } else {
+      await loadDocuments();
+    }
+    
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> loadRemoteCommonData() async {
+    _remoteCategories = await _documentRepository.getRemoteCategories();
+    _remoteZones = await _documentRepository.getRemoteZones();
+    
+    final homeData = await _documentRepository.getRemoteHomeScreenData();
+    final List<dynamic> recent = homeData['recent'] ?? [];
+    _remoteRecentBooks = recent.map((item) => DocumentModel.fromJson(Map<String, dynamic>.from(item))).toList();
+    _remoteHomeSections = homeData['sections'] ?? [];
+    
+    notifyListeners();
+  }
+
+  int? get selectedRemoteZoneId {
+    if (_selectedZone == null) return null;
+    try {
+      final zoneMap = _remoteZones.firstWhere(
+        (z) => z['name'].toString().toLowerCase() == _selectedZone!.toLowerCase(),
+      );
+      return zoneMap['id'] as int?;
+    } catch (_) {
+      try {
+        final zoneMap = _remoteZones.firstWhere(
+          (z) => _selectedZone!.toLowerCase().contains(z['name'].toString().toLowerCase()) ||
+                 z['name'].toString().toLowerCase().contains(_selectedZone!.toLowerCase()),
+        );
+        return zoneMap['id'] as int?;
+      } catch (_) {
+        return null;
+      }
+    }
+  }
+
+  int? getCategoryIdByName(String categoryName) {
+    try {
+      final catMap = _remoteCategories.firstWhere(
+        (c) => c['name'].toString().toLowerCase() == categoryName.toLowerCase(),
+      );
+      return catMap['id'] as int?;
+    } catch (_) {
+      final cleanName = categoryName.replaceAll(' ', '').replaceAll('.', '').toLowerCase();
+      try {
+        final catMap = _remoteCategories.firstWhere(
+          (c) {
+            final name = c['name'].toString().toLowerCase();
+            final slug = c['slug'].toString().toLowerCase();
+            return name.contains(cleanName) || 
+                   cleanName.contains(name) ||
+                   slug.contains(cleanName) ||
+                   cleanName.contains(slug);
+          }
+        );
+        return catMap['id'] as int?;
+      } catch (_) {
+        return null;
+      }
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchRemoteBooksForCategory({
+    required String categoryName,
+    String? query,
+    int page = 1,
+  }) async {
+    final catId = getCategoryIdByName(categoryName);
+    final zoneId = selectedRemoteZoneId;
+    
+    return await _documentRepository.getRemoteBooks(
+      query: query,
+      categoryId: catId,
+      zoneId: zoneId,
+      page: page,
+    );
+  }
+
   // Initialize and check current user session
   Future<void> initialize() async {
     _isLoading = true;
@@ -38,11 +146,18 @@ class AppState with ChangeNotifier {
     await _authRepository.init();
     await _documentRepository.init();
 
+    final prefs = await SharedPreferences.getInstance();
+    _useRemoteApi = prefs.getBool('use_remote_api') ?? false;
+
     _currentUser = await _authRepository.getCurrentUser();
     _selectedZone = await _authRepository.getSelectedZone();
     
-    if (_currentUser != null) {
-      await loadDocuments();
+    if (_useRemoteApi) {
+      await loadRemoteCommonData();
+    } else {
+      if (_currentUser != null) {
+        await loadDocuments();
+      }
     }
 
     _isLoading = false;

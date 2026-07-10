@@ -169,6 +169,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 24),
 
+              // Connection & API preferences
+              _buildSoftSectionHeader('Connection & API Preferences', isDark),
+              const SizedBox(height: 8),
+              _buildSoftCard(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.cloud_sync_rounded, color: AppTheme.primaryBlue),
+                          const SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Live Production API',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : AppTheme.textLightPrimary,
+                                ),
+                              ),
+                              Text(
+                                'Fetch real-time data from mycbt.in',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDark ? AppTheme.textDarkSecondary : AppTheme.textLightSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Switch(
+                        value: appState.useRemoteApi,
+                        activeColor: AppTheme.secondaryAmber,
+                        onChanged: (val) async {
+                          await appState.setUseRemoteApi(val);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  val
+                                      ? 'Switched to Live Production API'
+                                      : 'Switched to Offline Local Cache',
+                                ),
+                                duration: const Duration(seconds: 2),
+                                backgroundColor: AppTheme.accentTeal,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                isDark: isDark,
+              ),
+              const SizedBox(height: 24),
+
               // Legal & Support Section
               _buildSoftSectionHeader('Legal & Support', isDark),
               const SizedBox(height: 8),

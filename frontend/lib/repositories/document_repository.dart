@@ -1,9 +1,120 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 import '../models/document_model.dart';
 
 class DocumentRepository {
   static const String _docsDbKey = 'documents_database_v3';
+  
+  final Dio _dio = Dio(BaseOptions(
+    baseUrl: 'https://study.mycbt.in/api/v1',
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
+  ));
+
+  // Fetch all zones from remote API
+  Future<List<Map<String, dynamic>>> getRemoteZones() async {
+    try {
+      final response = await _dio.get('/zones');
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data['data'] ?? [];
+        return data.map((e) => Map<String, dynamic>.from(e)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching remote zones: $e');
+    }
+    return [];
+  }
+
+  // Fetch all categories from remote API
+  Future<List<Map<String, dynamic>>> getRemoteCategories() async {
+    try {
+      final response = await _dio.get('/categories');
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data['data'] ?? [];
+        return data.map((e) => Map<String, dynamic>.from(e)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching remote categories: $e');
+    }
+    return [];
+  }
+
+  // Fetch remote home screen data
+  Future<Map<String, dynamic>> getRemoteHomeScreenData() async {
+    try {
+      final response = await _dio.get('/home');
+      if (response.statusCode == 200 && response.data != null) {
+        return Map<String, dynamic>.from(response.data);
+      }
+    } catch (e) {
+      debugPrint('Error fetching remote home data: $e');
+    }
+    return {'recent': [], 'sections': []};
+  }
+
+  // Fetch books paginated
+  Future<Map<String, dynamic>> getRemoteBooks({
+    String? query,
+    int? categoryId,
+    int? zoneId,
+    int page = 1,
+  }) async {
+    try {
+      final queryParameters = <String, dynamic>{
+        'page': page,
+      };
+      if (query != null && query.isNotEmpty) {
+        queryParameters['q'] = query;
+      }
+      if (categoryId != null) {
+        queryParameters['category_id'] = categoryId;
+      }
+      if (zoneId != null) {
+        queryParameters['zone_id'] = zoneId;
+      }
+
+      final response = await _dio.get('/books', queryParameters: queryParameters);
+      if (response.statusCode == 200 && response.data != null) {
+        return Map<String, dynamic>.from(response.data);
+      }
+    } catch (e) {
+      debugPrint('Error fetching remote books: $e');
+    }
+    return {'data': [], 'meta': {'current_page': 1, 'last_page': 1}};
+  }
+
+  // Live autocomplete / search as you type
+  Future<List<DocumentModel>> searchRemoteBooks(String query, {int limit = 15}) async {
+    if (query.trim().isEmpty) return [];
+    try {
+      final response = await _dio.get('/books/search', queryParameters: {
+        'q': query,
+        'limit': limit,
+      });
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data['data'] ?? [];
+        return data.map((e) => DocumentModel.fromJson(Map<String, dynamic>.from(e))).toList();
+      }
+    } catch (e) {
+      debugPrint('Error searching remote books: $e');
+    }
+    return [];
+  }
+
+  // View book details & increment counter
+  Future<DocumentModel?> getRemoteBookDetail(String slug) async {
+    try {
+      final response = await _dio.get('/books/$slug');
+      if (response.statusCode == 200 && response.data != null && response.data['data'] != null) {
+        return DocumentModel.fromJson(Map<String, dynamic>.from(response.data['data']));
+      }
+    } catch (e) {
+      debugPrint('Error fetching remote book details for $slug: $e');
+    }
+    return null;
+  }
 
   // Seed documents
   Future<void> init() async {

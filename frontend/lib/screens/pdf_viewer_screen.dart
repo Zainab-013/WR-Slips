@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../models/document_model.dart';
-import '../theme.dart';
+import '../app_state.dart';
 
 class PdfViewerScreen extends StatefulWidget {
   final DocumentModel document;
@@ -24,6 +25,16 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _incrementViewsIfNeeded();
+    });
+  }
+
+  Future<void> _incrementViewsIfNeeded() async {
+    final appState = Provider.of<AppState>(context, listen: false);
+    if (appState.useRemoteApi && widget.document.slug != null) {
+      await appState.documentRepository.getRemoteBookDetail(widget.document.slug!);
+    }
   }
 
   @override
