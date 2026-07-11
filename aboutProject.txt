@@ -1,0 +1,554 @@
+WR & Slips Mobile Application
+
+Version: 1.0
+
+1. Project Overview
+
+The WR & Slips application is a Flutter-based mobile application designed to provide users with quick access to WR-related documents, circulars, PDFs, and slips. The application supports two types of users:
+
+- User
+- Admin
+
+Users can browse and download documents, while administrators can manage all content within the application.
+
+---
+
+2. Objectives
+
+- Provide easy access to WR documents.
+- Organize documents into categories.
+- Allow users to read and download PDFs.
+- Allow administrators to upload and manage documents.
+- Provide a clean and user-friendly interface.
+
+---
+
+3. Technology Stack
+
+Frontend
+
+- Flutter
+- Dart
+
+Backend
+
+- Spring Boot (recommended) or Node.js/Express
+
+Database
+
+- PostgreSQL
+
+File Storage
+
+- Cloudinary / Supabase Storage / AWS S3 (recommended)
+
+---
+
+4. User Roles
+
+User
+
+Permissions:
+
+- Register/Login
+- Select Zone
+- View Categories
+- Read PDF
+- Download PDF
+- View Slips
+
+Admin
+
+Permissions:
+
+- Login
+- Upload PDFs
+- Upload Slips
+- Edit Documents
+- Rename Documents
+- Delete Documents
+- Manage Categories
+
+---
+
+5. Application Flow
+
+Splash Screen
+
+↓
+
+Login / Register
+
+↓
+
+Select Role
+
+├── User
+
+│      ↓
+
+│   Select Zone
+
+│      ↓
+
+│   Home
+
+│      ↓
+
+│   Categories
+
+│      ↓
+
+│   PDFs / Slips
+
+│      ↓
+
+│   Read / Download
+
+│
+
+└── Admin
+
+↓
+
+Home
+
+↓
+
+Manage Categories
+
+↓
+
+Upload / Edit / Delete Documents
+
+---
+
+6. Screens
+
+6.1 Splash Screen
+
+Purpose:
+
+- Display application logo.
+- Initialize application.
+- Navigate to Login Screen.
+
+Components:
+
+- App Logo
+- App Name
+- Loading Indicator
+
+---
+
+6.2 Login Screen
+
+Components:
+
+- Email
+- Password
+- Login Button
+- Register Button
+- Forgot Password (optional)
+
+---
+
+6.3 Register Screen
+
+Components:
+
+- Full Name
+- Email
+- Mobile Number
+- Password
+- Confirm Password
+- Register Button
+
+---
+
+6.4 Role Selection Screen
+
+Options:
+
+- User
+- Admin
+
+---
+
+6.5 Zone Selection Screen
+
+Purpose:
+Allow users to select their respective railway zone before accessing documents.
+
+Example:
+
+- Western Railway
+- Central Railway
+- Other Zones (if required)
+
+---
+
+6.6 User Home Screen
+
+Five main sections:
+
+1. GR & SR
+2. O.M
+3. A.M
+4. B.W.M
+5. U.S.R
+
+Display:
+Large cards with icons.
+
+---
+
+6.7 Category Screen
+
+After selecting a section, users will see:
+
+- PDFs
+- Slips
+
+Each item displays:
+
+- Title
+- Date
+- Description (optional)
+
+---
+
+6.8 PDF Viewer Screen
+
+Functions:
+
+- Open PDF
+- Zoom
+- Scroll
+- Download PDF
+
+Buttons:
+
+- Read
+- Download
+
+---
+
+6.9 Slip Viewer Screen
+
+Displays:
+
+- List of slips
+- Read slip
+- Download slip (if applicable)
+
+---
+
+6.10 Admin Home Screen
+
+Displays same five sections:
+
+- GR & SR
+- O.M
+- A.M
+- B.W.M
+- U.S.R
+
+Additional management features.
+
+---
+
+6.11 Manage Documents Screen
+
+Displays all uploaded documents.
+
+Options:
+
+- Add
+- Edit
+- Rename
+- Delete
+
+---
+
+6.12 Add Document Screen
+
+Fields:
+
+- Title
+- Category
+- Zone
+- Upload PDF
+- Upload Slip
+- Save Button
+
+---
+
+6.13 Edit Document Screen
+
+Allows administrator to:
+
+- Change title
+- Replace PDF
+- Replace Slip
+- Change Category
+- Save Changes
+
+---
+
+7. Categories
+
+The application contains five document categories:
+
+- GR & SR
+- O.M
+- A.M
+- B.W.M
+- U.S.R
+
+Each category contains:
+
+- PDFs
+- Slips
+
+---
+
+8. Database Design
+
+Users
+
+- id
+- name
+- email
+- password
+- role
+- zone
+- created_at
+
+Documents
+
+- id
+- title
+- category
+- zone
+- pdf_url
+- slip_url
+- uploaded_by
+- created_at
+- updated_at
+
+---
+
+9. Functional Requirements
+
+User
+
+- Register account
+- Login
+- Select zone
+- Browse categories
+- Read PDFs
+- Download PDFs
+- View slips
+
+Admin
+
+- Login
+- Add document
+- Upload PDF
+- Upload slip
+- Rename document
+- Edit document
+- Delete document
+
+---
+
+10. Non-Functional Requirements
+
+- Responsive UI
+- Fast loading
+- Secure authentication
+- Easy navigation
+- Clean design
+- Scalable architecture
+
+---
+
+11. Folder Structure
+
+wr_slips/
+
+├── frontend/
+│      └── Flutter Project
+│
+├── backend/
+│      └── Spring Boot / Express
+│
+├── database/
+│
+└── docs/
+
+---
+
+12. Future Enhancements
+
+- Search documents
+- Bookmark documents
+- Recently Viewed
+- Push Notifications
+- Offline Downloads
+- Dark Mode
+- PDF Sharing
+- Analytics Dashboard for Admin
+
+---
+
+13. Expected Outcome
+
+The WR & Slips application will provide a centralized platform where railway users can easily access official documents and slips, while administrators can efficiently manage and update the content through a secure administration interface.
+
+14. UI Flow
+
+Overall Navigation
+
+Splash Screen
+        │
+        ▼
+ Login / Register
+        │
+        ▼
+  Select Role
+   ┌───────────────┐
+   │               │
+   ▼               ▼
+ User           Admin
+
+---
+
+User Flow
+
+User
+ │
+ ▼
+Select Zone
+ │
+ ▼
+Home Screen
+ │
+ ├── GR & SR
+ ├── O.M
+ ├── A.M
+ ├── B.W.M
+ └── U.S.R
+      │
+      ▼
+Category Details
+      │
+      ├── PDFs
+      │      │
+      │      ▼
+      │  PDF Viewer
+      │      │
+      │      ├── Read
+      │      └── Download
+      │
+      └── Slips
+             │
+             ▼
+        Slip Viewer
+             │
+             └── Download (if available)
+
+---
+
+Admin Flow
+
+Admin Login
+      │
+      ▼
+Admin Home
+      │
+      ├── GR & SR
+      ├── O.M
+      ├── A.M
+      ├── B.W.M
+      └── U.S.R
+             │
+             ▼
+      Manage Documents
+             │
+     ┌───────┼────────┬─────────┬─────────┐
+     ▼       ▼        ▼         ▼         ▼
+   Add     Edit    Rename    Delete   View List
+     │
+     ▼
+Upload PDF / Upload Slip
+     │
+     ▼
+Save Changes
+
+---
+
+Screen Hierarchy
+
+Splash Screen
+│
+├── Login
+│
+├── Register
+│
+├── Role Selection
+│
+├── User
+│   ├── Zone Selection
+│   ├── Home
+│   │   ├── GR & SR
+│   │   ├── O.M
+│   │   ├── A.M
+│   │   ├── B.W.M
+│   │   └── U.S.R
+│   │
+│   ├── Category Screen
+│   │   ├── PDF List
+│   │   └── Slip List
+│   │
+│   ├── PDF Viewer
+│   └── Slip Viewer
+│
+└── Admin
+    ├── Home
+    ├── Category Management
+    ├── Document List
+    ├── Add Document
+    ├── Edit Document
+    ├── Rename Document
+    ├── Delete Document
+    └── Upload PDF / Slip
+
+---
+
+User Journey
+
+1. Open the app.
+2. Splash screen appears.
+3. User logs in or registers.
+4. User selects the User role.
+5. User selects a railway zone.
+6. User reaches the Home screen.
+7. User selects one of the five sections.
+8. User opens either PDFs or Slips.
+9. User reads the document and can download it.
+
+---
+
+Admin Journey
+
+1. Open the app.
+2. Log in as Admin.
+3. Open the Home screen.
+4. Select a section.
+5. View the document list.
+6. Add, edit, rename, or delete PDFs and slips.
+7. Save changes so users see the updated content.
+
+

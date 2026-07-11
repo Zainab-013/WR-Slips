@@ -524,7 +524,12 @@ class UserHomeScreen extends StatelessWidget {
                 children: [
                   Icon(Icons.sync_rounded, color: AppTheme.primaryBlue),
                   SizedBox(width: 12),
-                  Text('Syncing Documents', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Expanded(
+                    child: Text(
+                      'Syncing Documents',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ],
               ),
               content: Column(

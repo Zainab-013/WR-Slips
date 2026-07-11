@@ -1,0 +1,162 @@
+STUDY / BOOK LIBRARY — PUBLIC API (for Flutter / Android app)
+================================================================
+
+Base URL (production): https://study.mycbt.in/api/v1
+Base URL (local dev):  http://localhost/books/public/api/v1
+
+No authentication required — all endpoints are public, read-only.
+Rate limit: 120 requests/minute per IP.
+All responses are JSON. Errors (404, validation, etc.) also come back as JSON.
+
+
+ENDPOINTS
+---------
+
+GET /home
+    Home screen data: recently added books + books grouped by category.
+    No query params.
+
+GET /books
+    Paginated / filterable book list (for a Browse screen).
+    Query params (all optional):
+      q             search text (title / description / tags)
+      category_id   filter by category id
+      department_id filter by department id
+      language_id   filter by language id
+      zone_id       filter by zone id
+      exam_id       filter by exam id
+      per_page      results per page, default 20, max 50
+
+GET /books/search?q=...
+    Lightweight typeahead search (no pagination). Use this for a live
+    "search as you type" box.
+    Query params:
+      q       search text (required — empty q returns an empty list)
+      limit   max results, default 15, max 30
+
+GET /books/{slug}
+    Full detail for one book, plus a "related" list of similar books.
+    Visiting this endpoint increments the book's view counter.
+
+GET /categories
+GET /departments
+GET /languages
+GET /zones
+GET /exams
+    Lookup lists for filter dropdowns. Each item is {id, name, slug}
+    except /languages, which is {id, name, code}.
+
+
+BOOK OBJECT — FIELD REFERENCE
+------------------------------
+
+id                 number
+slug               string   — use this in URLs, not id
+title              string
+description        string or null
+year               number or null
+pages              number or null
+tags               array of strings
+views              number
+views_short        string   — e.g. "1.2K", "13", for display
+downloads          number
+file_size          number   — bytes
+file_size_human    string   — e.g. "8.6 MB"
+category           {id, name, slug} or null
+department         {id, name, slug} or null
+language           {id, name, code} or null
+zone               {id, name, slug} or null
+exam               {id, name, slug} or null
+cover_url          string or null  — book cover image
+file_url           string   — direct PDF stream, use for in-app PDF viewer
+download_url       string   — triggers a download + increments download count
+web_url            string   — opens the book on the website (for "view on web")
+created_at         string   — ISO 8601 timestamp
+added_human        string   — e.g. "2 days ago"
+
+
+EXAMPLE — GET /books/advance-commercial-notes
+----------------------------------------------
+{
+  "data": {
+    "id": 6,
+    "slug": "advance-commercial-notes",
+    "title": "Advance Commercial Notes",
+    "description": null,
+    "year": null,
+    "pages": null,
+    "tags": [],
+    "views": 14,
+    "views_short": "14",
+    "downloads": 0,
+    "file_size": 9049602,
+    "file_size_human": "8.6 MB",
+    "category": { "id": 2, "name": "Reference", "slug": "reference" },
+    "department": { "id": 3, "name": "Commercial", "slug": "commercial" },
+    "language": { "id": 1, "name": "English", "code": "en" },
+    "zone": null,
+    "exam": null,
+    "cover_url": "https://study.mycbt.in/book/advance-commercial-notes/cover",
+    "file_url": "https://study.mycbt.in/book/advance-commercial-notes/file",
+    "download_url": "https://study.mycbt.in/book/advance-commercial-notes/download",
+    "web_url": "https://study.mycbt.in/book/advance-commercial-notes",
+    "created_at": "2026-07-05T04:55:50+00:00",
+    "added_human": "10 hours ago"
+  },
+  "related": [
+    { "id": 52, "slug": "2da355zc67-sr-clerk-stores-set-a", "title": "...", "...": "same shape as above" }
+  ]
+}
+
+
+EXAMPLE — GET /books?per_page=2  (paginated list)
+---------------------------------------------------
+{
+  "data": [
+    { "id": 52, "slug": "2da355zc67-sr-clerk-stores-set-a", "title": "...", "...": "same book shape as above" },
+    { "id": 51, "slug": "sr-clerk-stores-set-a-3", "title": "...", "...": "same book shape as above" }
+  ],
+  "links": {
+    "first": "https://study.mycbt.in/api/v1/books?per_page=2&page=1",
+    "last":  "https://study.mycbt.in/api/v1/books?per_page=2&page=2",
+    "prev": null,
+    "next": "https://study.mycbt.in/api/v1/books?per_page=2&page=2"
+  },
+  "meta": {
+    "current_page": 1,
+    "last_page": 2,
+    "per_page": 2,
+    "total": 3
+  }
+}
+Use meta.current_page / meta.last_page for infinite scroll (fetch next
+page while current_page < last_page).
+
+
+EXAMPLE — GET /categories
+----------------------------
+{
+  "data": [
+    { "id": 1, "name": "PYQ", "slug": "pyq" },
+    { "id": 2, "name": "Reference", "slug": "reference" },
+    { "id": 3, "name": "GSR", "slug": "gsr" },
+    { "id": 4, "name": "OM", "slug": "om" },
+    { "id": 5, "name": "AM", "slug": "am" }
+  ]
+}
+/departments, /zones, /exams look identical in shape.
+/languages looks the same but with "code" instead of "slug".
+
+
+EXAMPLE — GET /home
+----------------------
+{
+  "recent": [ { "...book object..." }, ... up to 8 ],
+  "sections": [
+    {
+      "category": { "id": 2, "name": "Reference", "slug": "reference" },
+      "books": [ { "...book object..." }, ... up to 8 ]
+    },
+    ...
+  ]
+}
