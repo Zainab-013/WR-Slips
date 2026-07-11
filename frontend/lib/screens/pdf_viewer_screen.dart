@@ -27,6 +27,19 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _incrementViewsIfNeeded();
+      
+      final appState = Provider.of<AppState>(context, listen: false);
+      final offlineBytes = appState.getOfflineBytes(widget.document.id, isSlip: false);
+      final String rawPath = widget.document.pdfUrl ?? '';
+      final String pdfPath = rawPath.isNotEmpty
+          ? rawPath
+          : (!appState.useRemoteApi ? 'assets/docs/sample.pdf' : '');
+      
+      if (pdfPath.isEmpty && offlineBytes == null) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     });
   }
 
@@ -42,12 +55,14 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
     final appState = Provider.of<AppState>(context, listen: false);
     final offlineBytes = appState.getOfflineBytes(widget.document.id, isSlip: false);
 
-    // Fallback path in case pdfUrl is null or empty
-    final String pdfPath = (widget.document.pdfUrl != null && widget.document.pdfUrl!.isNotEmpty) 
-        ? widget.document.pdfUrl! 
-        : 'assets/docs/sample.pdf';
+    // Fallback path is allowed only in local cache mode (when useRemoteApi is false)
+    final String rawPath = widget.document.pdfUrl ?? '';
+    final String pdfPath = rawPath.isNotEmpty
+        ? rawPath
+        : (!appState.useRemoteApi ? 'assets/docs/sample.pdf' : '');
 
     final isAsset = !pdfPath.startsWith('http');
+    final isPathEmpty = pdfPath.isEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -69,36 +84,27 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
       ),
       body: Stack(
         children: [
-          offlineBytes != null
-              ? SfPdfViewer.memory(
-                  offlineBytes,
-                  controller: _pdfViewerController,
-                  onDocumentLoaded: (PdfDocumentLoadedDetails details) {
-                    setState(() {
-                      _isLoading = false;
-                      _pageCount = details.document.pages.count;
-                    });
-                  },
-                  onPageChanged: (PdfPageChangedDetails details) {
-                    setState(() {
-                      _currentPage = details.newPageNumber;
-                    });
-                  },
-                  onDocumentLoadFailed: (PdfDocumentLoadFailedDetails details) {
-                    setState(() {
-                      _isLoading = false;
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Failed to load cached PDF: ${details.error}'),
-                        backgroundColor: Colors.redAccent,
-                      ),
-                    );
-                  },
+          isPathEmpty && offlineBytes == null
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.info_outline_rounded, size: 64, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text(
+                          'This rules manual is not available on the server.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
                 )
-              : isAsset
-                  ? SfPdfViewer.asset(
-                      pdfPath,
+              : offlineBytes != null
+                  ? SfPdfViewer.memory(
+                      offlineBytes,
                       controller: _pdfViewerController,
                       onDocumentLoaded: (PdfDocumentLoadedDetails details) {
                         setState(() {
@@ -117,39 +123,66 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
                         });
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Failed to load PDF: ${details.error}'),
+                            content: Text('Failed to load cached PDF: ${details.error}'),
                             backgroundColor: Colors.redAccent,
                           ),
                         );
                       },
                     )
-                  : SfPdfViewer.network(
-                      pdfPath,
-                      controller: _pdfViewerController,
-                      onDocumentLoaded: (PdfDocumentLoadedDetails details) {
-                        setState(() {
-                          _isLoading = false;
-                          _pageCount = details.document.pages.count;
-                        });
-                      },
-                      onPageChanged: (PdfPageChangedDetails details) {
-                        setState(() {
-                          _currentPage = details.newPageNumber;
-                        });
-                      },
-                      onDocumentLoadFailed: (PdfDocumentLoadFailedDetails details) {
-                        setState(() {
-                          _isLoading = false;
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Failed to load network PDF: ${details.error}'),
-                            backgroundColor: Colors.redAccent,
-                          ),
-                        );
-                      },
-                    ),
-          if (_isLoading)
+                  : isAsset
+                      ? SfPdfViewer.asset(
+                          pdfPath,
+                          controller: _pdfViewerController,
+                          onDocumentLoaded: (PdfDocumentLoadedDetails details) {
+                            setState(() {
+                              _isLoading = false;
+                              _pageCount = details.document.pages.count;
+                            });
+                          },
+                          onPageChanged: (PdfPageChangedDetails details) {
+                            setState(() {
+                              _currentPage = details.newPageNumber;
+                            });
+                          },
+                          onDocumentLoadFailed: (PdfDocumentLoadFailedDetails details) {
+                            setState(() {
+                              _isLoading = false;
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Failed to load PDF: ${details.error}'),
+                                backgroundColor: Colors.redAccent,
+                              ),
+                            );
+                          },
+                        )
+                      : SfPdfViewer.network(
+                          pdfPath,
+                          controller: _pdfViewerController,
+                          onDocumentLoaded: (PdfDocumentLoadedDetails details) {
+                            setState(() {
+                              _isLoading = false;
+                              _pageCount = details.document.pages.count;
+                            });
+                          },
+                          onPageChanged: (PdfPageChangedDetails details) {
+                            setState(() {
+                              _currentPage = details.newPageNumber;
+                            });
+                          },
+                          onDocumentLoadFailed: (PdfDocumentLoadFailedDetails details) {
+                            setState(() {
+                              _isLoading = false;
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Failed to load network PDF: ${details.error}'),
+                                backgroundColor: Colors.redAccent,
+                              ),
+                            );
+                          },
+                        ),
+          if (_isLoading && !isPathEmpty)
             const Center(
               child: CircularProgressIndicator(),
             ),

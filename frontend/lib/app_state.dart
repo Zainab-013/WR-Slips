@@ -158,7 +158,7 @@ class AppState with ChangeNotifier {
     await _documentRepository.init();
 
     final prefs = await SharedPreferences.getInstance();
-    _useRemoteApi = prefs.getBool('use_remote_api') ?? false;
+    _useRemoteApi = prefs.getBool('use_remote_api') ?? true;
 
     _currentUser = await _authRepository.getCurrentUser();
     _selectedZone = await _authRepository.getSelectedZone();
