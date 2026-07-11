@@ -70,41 +70,49 @@ class _ZoneSelectionScreenState extends State<ZoneSelectionScreen> {
       },
     ];
 
-    // Determine which zones to display
+    // Determine which zones to display (always use API zones first)
     final List<Map<String, dynamic>> displayZones = [];
-    if (appState.useRemoteApi) {
-      for (final z in appState.remoteZones) {
-        final String name = z['name']?.toString() ?? '';
-        final String slug = z['slug']?.toString() ?? '';
-        
-        IconData icon = Icons.train_rounded;
-        Color color = AppTheme.primaryBlue;
-        String code = slug.toUpperCase().split('-').map((s) => s.isNotEmpty ? s[0] : '').join();
-        if (code.isEmpty) code = 'RLY';
+    
+    displayZones.add({
+      'name': 'All Zones',
+      'code': 'ALL',
+      'icon': Icons.public_rounded,
+      'color': const Color(0xFF4F46E5),
+    });
 
-        // Check if there is a local zone match for icon/color/code
-        final match = localZones.firstWhere(
-          (lz) => lz['name'].toString().toLowerCase() == name.toLowerCase() ||
-                  name.toLowerCase().contains(lz['name'].toString().toLowerCase()) ||
-                  lz['name'].toString().toLowerCase().contains(name.toLowerCase()),
-          orElse: () => {},
-        );
+    final zonesSource = appState.remoteZones.isNotEmpty ? appState.remoteZones : localZones;
+    
+    for (final z in zonesSource) {
+      final String name = z['name']?.toString() ?? '';
+      final String slug = z['slug']?.toString() ?? z['code']?.toString()?.toLowerCase() ?? '';
+      
+      IconData icon = Icons.train_rounded;
+      Color color = AppTheme.primaryBlue;
+      
+      // Fallback for code extraction
+      String code = slug.toUpperCase().split('-').map((s) => s.isNotEmpty ? s[0] : '').join();
+      if (code.isEmpty) code = z['code']?.toString() ?? 'RLY';
 
-        if (match.isNotEmpty) {
-          icon = match['icon'] as IconData;
-          color = match['color'] as Color;
-          code = match['code'] as String;
-        }
+      // Check if there is a local zone match for icon/color/code to keep beautiful styling
+      final match = localZones.firstWhere(
+        (lz) => lz['name'].toString().toLowerCase() == name.toLowerCase() ||
+                name.toLowerCase().contains(lz['name'].toString().toLowerCase()) ||
+                lz['name'].toString().toLowerCase().contains(name.toLowerCase()),
+        orElse: () => {},
+      );
 
-        displayZones.add({
-          'name': name,
-          'code': code,
-          'icon': icon,
-          'color': color,
-        });
+      if (match.isNotEmpty) {
+        icon = match['icon'] as IconData;
+        color = match['color'] as Color;
+        code = match['code'] as String;
       }
-    } else {
-      displayZones.addAll(localZones);
+
+      displayZones.add({
+        'name': name,
+        'code': code,
+        'icon': icon,
+        'color': color,
+      });
     }
 
     final showLoading = _isLoading || appState.isLoading;

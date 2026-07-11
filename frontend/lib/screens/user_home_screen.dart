@@ -57,59 +57,17 @@ class UserHomeScreen extends StatelessWidget {
       },
     ];
 
-    final List<Map<String, dynamic>> categoriesToDisplay = [];
-
-    if (appState.useRemoteApi) {
-      for (final cat in appState.remoteCategories) {
-        final name = cat['name']?.toString() ?? '';
-        final cleanName = name.replaceAll(' ', '').replaceAll('.', '').toLowerCase();
-
-        IconData icon = Icons.book_rounded;
-        LinearGradient gradient = AppTheme.primaryGradient;
-        String subtitle = 'Study Materials & Reference';
-
-        final match = localCategories.firstWhere(
-          (lc) {
-            final title = lc['title'].toString().toLowerCase().replaceAll(' ', '').replaceAll('&', '').replaceAll('.', '');
-            return title.contains(cleanName) || cleanName.contains(title);
-          },
-          orElse: () => {},
-        );
-
-        if (match.isNotEmpty) {
-          icon = match['icon'] as IconData;
-          gradient = match['gradient'] as LinearGradient;
-          subtitle = match['subtitle'] as String;
-        } else {
-          if (cleanName.contains('pyq') || cleanName.contains('question')) {
-            icon = Icons.quiz_rounded;
-            gradient = const LinearGradient(
-              colors: [Color(0xFF3B82F6), Color(0xFF60A5FA)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            );
-            subtitle = 'Previous Year Questions';
-          } else if (cleanName.contains('reference') || cleanName.contains('library')) {
-            icon = Icons.library_books_rounded;
-            gradient = const LinearGradient(
-              colors: [Color(0xFF8B5CF6), Color(0xFFA78BFA)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            );
-            subtitle = 'Reference Books & Manuals';
-          }
-        }
-
-        categoriesToDisplay.add({
-          'title': name,
-          'subtitle': subtitle,
-          'icon': icon,
-          'gradient': gradient,
-        });
-      }
-    } else {
-      categoriesToDisplay.addAll(localCategories);
-    }
+    final List<Map<String, dynamic>> categoriesToDisplay = List.from(localCategories);
+    categoriesToDisplay.add({
+      'title': 'Other',
+      'subtitle': 'Other reference manuals & books',
+      'icon': Icons.more_horiz_rounded,
+      'gradient': const LinearGradient(
+        colors: [Color(0xFF64748B), Color(0xFF94A3B8)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -254,115 +212,7 @@ class UserHomeScreen extends StatelessWidget {
                 ),
               ),
 
-              // Recently Added Section (Only in Remote API mode)
-              if (appState.useRemoteApi && appState.remoteRecentBooks.isNotEmpty) ...[
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(20, 10, 20, 8),
-                  child: Text(
-                    'Recently Added Books',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 170,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: appState.remoteRecentBooks.length,
-                    itemBuilder: (context, index) {
-                      final book = appState.remoteRecentBooks[index];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => PdfViewerScreen(document: book),
-                              ),
-                            );
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            width: 120,
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: isDark ? AppTheme.cardDark : Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isDark ? Colors.white12 : Colors.black12,
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.primaryBlue.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                      image: book.coverUrl != null && book.coverUrl!.isNotEmpty
-                                          ? DecorationImage(
-                                              image: NetworkImage(book.coverUrl!),
-                                              fit: BoxFit.cover,
-                                            )
-                                          : null,
-                                    ),
-                                    child: book.coverUrl == null || book.coverUrl!.isEmpty
-                                        ? const Center(
-                                            child: Icon(
-                                              Icons.book_rounded,
-                                              color: AppTheme.primaryBlue,
-                                              size: 36,
-                                            ),
-                                          )
-                                        : null,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  book.title,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    height: 1.2,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  book.fileSizeHuman ?? book.addedHuman ?? '',
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    color: isDark ? AppTheme.textDarkSecondary : AppTheme.textLightSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 10),
-              ],
-
-              // Categories Header for Remote API Mode
-              if (appState.useRemoteApi) 
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(20, 10, 20, 4),
-                  child: Text(
-                    'Book Categories',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+              const SizedBox(height: 10),
 
               // Categories Grid
               Expanded(

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -75,19 +76,32 @@ class AppState with ChangeNotifier {
   }
 
   Future<void> loadRemoteCommonData() async {
-    _remoteCategories = await _documentRepository.getRemoteCategories();
-    _remoteZones = await _documentRepository.getRemoteZones();
-    
-    final homeData = await _documentRepository.getRemoteHomeScreenData();
-    final List<dynamic> recent = homeData['recent'] ?? [];
-    _remoteRecentBooks = recent.map((item) => DocumentModel.fromJson(Map<String, dynamic>.from(item))).toList();
-    _remoteHomeSections = homeData['sections'] ?? [];
-    
+    try {
+      final categories = await _documentRepository.getRemoteCategories();
+      final zones = await _documentRepository.getRemoteZones();
+      
+      final prefs = await SharedPreferences.getInstance();
+      if (categories.isNotEmpty) {
+        _remoteCategories = categories;
+        await prefs.setString('cached_remote_categories', jsonEncode(categories));
+      }
+      if (zones.isNotEmpty) {
+        _remoteZones = zones;
+        await prefs.setString('cached_remote_zones', jsonEncode(zones));
+      }
+
+      final homeData = await _documentRepository.getRemoteHomeScreenData();
+      final List<dynamic> recent = homeData['recent'] ?? [];
+      _remoteRecentBooks = recent.map((item) => DocumentModel.fromJson(Map<String, dynamic>.from(item))).toList();
+      _remoteHomeSections = homeData['sections'] ?? [];
+    } catch (e) {
+      debugPrint('Error loading remote common data: $e');
+    }
     notifyListeners();
   }
 
   int? get selectedRemoteZoneId {
-    if (_selectedZone == null) return null;
+    if (_selectedZone == null || _selectedZone == 'All Zones' || _selectedZone == 'All') return null;
     try {
       final zoneMap = _remoteZones.firstWhere(
         (z) => z['name'].toString().toLowerCase() == _selectedZone!.toLowerCase(),
@@ -137,15 +151,51 @@ class AppState with ChangeNotifier {
     String? query,
     int page = 1,
   }) async {
-    final catId = getCategoryIdByName(categoryName);
     final zoneId = selectedRemoteZoneId;
-    
-    return await _documentRepository.getRemoteBooks(
-      query: query,
-      categoryId: catId,
-      zoneId: zoneId,
-      page: page,
-    );
+
+    if (categoryName == 'Other') {
+      // Fetch all books for the selected zone
+      final result = await _documentRepository.getRemoteBooks(
+        query: query,
+        zoneId: zoneId,
+        page: page,
+      );
+
+      final List<dynamic> booksData = result['data'] ?? [];
+      final gsrId = getCategoryIdByName('GR & SR');
+      final omId = getCategoryIdByName('O.M');
+      final amId = getCategoryIdByName('A.M');
+
+      // Filter out books belonging to GR&SR, OM, or AM categories
+      final filteredBooks = booksData.where((b) {
+        final categoryMap = b['category'] as Map<String, dynamic>?;
+        final catId = categoryMap != null ? categoryMap['id'] as int? : null;
+        return catId != gsrId && catId != omId && catId != amId;
+      }).toList();
+
+      return {
+        'data': filteredBooks,
+        'meta': result['meta'] ?? {'current_page': page, 'last_page': page},
+      };
+    } else {
+      final catId = getCategoryIdByName(categoryName);
+      
+      // If the selected category is one of the default mock ones not present on the API (e.g. BWM / USR),
+      // return an empty result list instead of querying all books from the endpoint
+      if (catId == null) {
+        return {
+          'data': [],
+          'meta': {'current_page': 1, 'last_page': 1},
+        };
+      }
+
+      return await _documentRepository.getRemoteBooks(
+        query: query,
+        categoryId: catId,
+        zoneId: zoneId,
+        page: page,
+      );
+    }
   }
 
   // Initialize and check current user session
@@ -158,6 +208,24 @@ class AppState with ChangeNotifier {
 
     final prefs = await SharedPreferences.getInstance();
     _useRemoteApi = prefs.getBool('use_remote_api') ?? true;
+
+    // Load cached categories and zones
+    final cachedCatsStr = prefs.getString('cached_remote_categories');
+    if (cachedCatsStr != null) {
+      try {
+        _remoteCategories = List<Map<String, dynamic>>.from(jsonDecode(cachedCatsStr));
+      } catch (e) {
+        debugPrint('Error parsing cached categories: $e');
+      }
+    }
+    final cachedZonesStr = prefs.getString('cached_remote_zones');
+    if (cachedZonesStr != null) {
+      try {
+        _remoteZones = List<Map<String, dynamic>>.from(jsonDecode(cachedZonesStr));
+      } catch (e) {
+        debugPrint('Error parsing cached zones: $e');
+      }
+    }
 
     _currentUser = await _authRepository.getCurrentUser();
     _selectedZone = await _authRepository.getSelectedZone();
@@ -257,7 +325,12 @@ class AppState with ChangeNotifier {
 
   Future<void> loadDocuments() async {
     if (_selectedZone == null) return;
-    _documents = await _documentRepository.getAllDocuments();
+    final allDocs = await _documentRepository.getAllDocuments();
+    if (_selectedZone == 'All Zones' || _selectedZone == 'All') {
+      _documents = allDocs;
+    } else {
+      _documents = allDocs.where((d) => d.zone == _selectedZone).toList();
+    }
     notifyListeners();
   }
 
@@ -338,6 +411,9 @@ class AppState with ChangeNotifier {
   Future<void> clearOfflineCache() async {
     final box = Hive.box<Uint8List>('offline_documents');
     await box.clear();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('documents_database_api_only', '[]');
+    await loadDocuments();
     notifyListeners();
   }
 
@@ -460,6 +536,11 @@ class AppState with ChangeNotifier {
           notifyListeners();
         }
       }
+
+      // Save metadata list to SharedPreferences for offline catalog browsing
+      final prefs = await SharedPreferences.getInstance();
+      final docsJson = docsToSync.map((d) => d.toJson()).toList();
+      await prefs.setString('documents_database_api_only', jsonEncode(docsJson));
 
       _syncStatusText = 'Sync completed successfully!';
       _syncProgress = 1.0;
