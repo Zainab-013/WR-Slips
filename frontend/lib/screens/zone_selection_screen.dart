@@ -84,7 +84,7 @@ class _ZoneSelectionScreenState extends State<ZoneSelectionScreen> {
     
     for (final z in zonesSource) {
       final String name = z['name']?.toString() ?? '';
-      final String slug = z['slug']?.toString() ?? z['code']?.toString()?.toLowerCase() ?? '';
+      final String slug = z['slug']?.toString() ?? z['code']?.toString().toLowerCase() ?? '';
       
       IconData icon = Icons.train_rounded;
       Color color = AppTheme.primaryBlue;

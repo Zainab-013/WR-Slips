@@ -6,7 +6,6 @@ import 'category_screen.dart';
 import 'zone_selection_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
-import 'pdf_viewer_screen.dart';
 
 class UserHomeScreen extends StatelessWidget {
   const UserHomeScreen({super.key});
