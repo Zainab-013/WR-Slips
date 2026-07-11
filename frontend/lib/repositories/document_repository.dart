@@ -125,7 +125,6 @@ class DocumentRepository {
       await prefs.setString(_docsDbKey, jsonEncode(docsJson));
     }
   }
-  }
 
   Future<List<DocumentModel>> getAllDocuments() async {
     await init();
