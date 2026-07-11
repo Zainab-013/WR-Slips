@@ -355,6 +355,9 @@ class AppState with ChangeNotifier {
       List<DocumentModel> docsToSync = [];
 
       if (_useRemoteApi) {
+        // Fetch latest categories, zones, and home screen layout from API
+        await loadRemoteCommonData();
+
         // Fetch all pages of remote books for the selected zone
         int page = 1;
         bool hasMore = true;
@@ -386,7 +389,8 @@ class AppState with ChangeNotifier {
           }
         }
       } else {
-        // Local mode: use seeded cache
+        // Local mode: load latest documents and use seeded cache
+        await loadDocuments();
         docsToSync = List.from(_documents);
       }
 
