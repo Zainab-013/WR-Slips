@@ -40,6 +40,9 @@ class _SlipViewerScreenState extends State<SlipViewerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final offlineBytes = appState.getOfflineBytes(widget.document.id, isSlip: true);
+
     final String slipPath = (widget.document.slipUrl != null && widget.document.slipUrl!.isNotEmpty)
         ? widget.document.slipUrl!
         : 'assets/docs/sample.pdf';
@@ -119,9 +122,9 @@ class _SlipViewerScreenState extends State<SlipViewerScreen> {
                   ),
                   child: Stack(
                     children: [
-                      isAsset
-                          ? SfPdfViewer.asset(
-                              slipPath,
+                      offlineBytes != null
+                          ? SfPdfViewer.memory(
+                              offlineBytes,
                               controller: _pdfViewerController,
                               onDocumentLoaded: (PdfDocumentLoadedDetails details) {
                                 setState(() {
@@ -135,21 +138,37 @@ class _SlipViewerScreenState extends State<SlipViewerScreen> {
                                 });
                               },
                             )
-                          : SfPdfViewer.network(
-                              slipPath,
-                              controller: _pdfViewerController,
-                              onDocumentLoaded: (PdfDocumentLoadedDetails details) {
-                                setState(() {
-                                  _isLoading = false;
-                                  _pageCount = details.document.pages.count;
-                                });
-                              },
-                              onPageChanged: (PdfPageChangedDetails details) {
-                                setState(() {
-                                  _currentPage = details.newPageNumber;
-                                });
-                              },
-                            ),
+                          : isAsset
+                              ? SfPdfViewer.asset(
+                                  slipPath,
+                                  controller: _pdfViewerController,
+                                  onDocumentLoaded: (PdfDocumentLoadedDetails details) {
+                                    setState(() {
+                                      _isLoading = false;
+                                      _pageCount = details.document.pages.count;
+                                    });
+                                  },
+                                  onPageChanged: (PdfPageChangedDetails details) {
+                                    setState(() {
+                                      _currentPage = details.newPageNumber;
+                                    });
+                                  },
+                                )
+                              : SfPdfViewer.network(
+                                  slipPath,
+                                  controller: _pdfViewerController,
+                                  onDocumentLoaded: (PdfDocumentLoadedDetails details) {
+                                    setState(() {
+                                      _isLoading = false;
+                                      _pageCount = details.document.pages.count;
+                                    });
+                                  },
+                                  onPageChanged: (PdfPageChangedDetails details) {
+                                    setState(() {
+                                      _currentPage = details.newPageNumber;
+                                    });
+                                  },
+                                ),
                       if (_isLoading)
                         const Center(child: CircularProgressIndicator()),
                     ],

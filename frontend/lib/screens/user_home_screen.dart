@@ -130,6 +130,11 @@ class UserHomeScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.sync_rounded),
+            tooltip: 'Sync Offline Documents',
+            onPressed: () => _showSyncProgressDialog(context, appState),
+          ),
+          IconButton(
             icon: Icon(
               isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
             ),
@@ -476,6 +481,80 @@ class UserHomeScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showSyncProgressDialog(BuildContext context, AppState appState) {
+    if (appState.isSyncing) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sync is already in progress...')),
+      );
+      return;
+    }
+
+    // Trigger sync operation asynchronously
+    appState.syncAllDocuments();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Consumer<AppState>(
+          builder: (context, state, child) {
+            // Automatically pop the dialog once sync completes
+            if (!state.isSyncing && state.syncProgress >= 1.0) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Offline sync completed successfully!'),
+                      backgroundColor: AppTheme.accentTeal,
+                    ),
+                  );
+                }
+              });
+            }
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: const Row(
+                children: [
+                  Icon(Icons.sync_rounded, color: AppTheme.primaryBlue),
+                  SizedBox(width: 12),
+                  Text('Syncing Documents', style: TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    state.syncStatusText,
+                    style: const TextStyle(fontSize: 14),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 20),
+                  LinearProgressIndicator(
+                    value: state.syncProgress,
+                    backgroundColor: Colors.grey.shade200,
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryBlue),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Progress: ${(state.syncProgress * 100).toStringAsFixed(0)}%',
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

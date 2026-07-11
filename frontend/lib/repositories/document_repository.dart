@@ -301,4 +301,20 @@ class DocumentRepository {
     }
     return true;
   }
+
+  // Download file as Uint8List bytes from network
+  Future<Uint8List?> downloadFileBytes(String url) async {
+    try {
+      final response = await _dio.get<List<int>>(
+        url,
+        options: Options(responseType: ResponseType.bytes),
+      );
+      if (response.data != null) {
+        return Uint8List.fromList(response.data!);
+      }
+    } catch (e) {
+      debugPrint('Error downloading file bytes from $url: $e');
+    }
+    return null;
+  }
 }

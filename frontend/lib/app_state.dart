@@ -1,4 +1,7 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/user_model.dart';
 import 'models/document_model.dart';
@@ -14,6 +17,14 @@ class AppState with ChangeNotifier {
   List<DocumentModel> _documents = [];
   bool _isLoading = false;
   ThemeMode _themeMode = ThemeMode.light;
+
+  bool _isSyncing = false;
+  double _syncProgress = 0.0;
+  String _syncStatusText = '';
+
+  bool get isSyncing => _isSyncing;
+  double get syncProgress => _syncProgress;
+  String get syncStatusText => _syncStatusText;
 
   bool _useRemoteApi = false;
   bool get useRemoteApi => _useRemoteApi;
@@ -308,5 +319,172 @@ class AppState with ChangeNotifier {
   Future<void> deleteDocument(String id) async {
     await _documentRepository.deleteDocument(id);
     await loadDocuments();
+  }
+
+  // Check if a document file is cached offline in Hive
+  bool isDocumentOffline(String id, {bool isSlip = false}) {
+    final box = Hive.box<Uint8List>('offline_documents');
+    final key = isSlip ? '${id}_slip' : '${id}_pdf';
+    return box.containsKey(key);
+  }
+
+  // Retrieve cached document bytes from Hive
+  Uint8List? getOfflineBytes(String id, {bool isSlip = false}) {
+    final box = Hive.box<Uint8List>('offline_documents');
+    final key = isSlip ? '${id}_slip' : '${id}_pdf';
+    return box.get(key);
+  }
+
+  // Clear all cached offline files in Hive
+  Future<void> clearOfflineCache() async {
+    final box = Hive.box<Uint8List>('offline_documents');
+    await box.clear();
+    notifyListeners();
+  }
+
+  // Main sync operation: downloads and caches all PDF files offline
+  Future<void> syncAllDocuments() async {
+    if (_isSyncing) return;
+
+    _isSyncing = true;
+    _syncProgress = 0.0;
+    _syncStatusText = 'Preparing documents list...';
+    notifyListeners();
+
+    try {
+      List<DocumentModel> docsToSync = [];
+
+      if (_useRemoteApi) {
+        // Fetch all pages of remote books for the selected zone
+        int page = 1;
+        bool hasMore = true;
+        while (hasMore) {
+          _syncStatusText = 'Fetching remote list (Page $page)...';
+          notifyListeners();
+
+          final result = await _documentRepository.getRemoteBooks(
+            zoneId: selectedRemoteZoneId,
+            page: page,
+          );
+          
+          final List<dynamic> booksData = result['data'] ?? [];
+          final List<DocumentModel> fetchedBooks = booksData
+              .map((b) => DocumentModel.fromJson(Map<String, dynamic>.from(b)))
+              .toList();
+
+          if (fetchedBooks.isEmpty) {
+            hasMore = false;
+          } else {
+            docsToSync.addAll(fetchedBooks);
+            final meta = result['meta'] ?? {};
+            final lastPage = meta['last_page'] as int? ?? 1;
+            if (page >= lastPage) {
+              hasMore = false;
+            } else {
+              page++;
+            }
+          }
+        }
+      } else {
+        // Local mode: use seeded cache
+        docsToSync = List.from(_documents);
+      }
+
+      if (docsToSync.isEmpty) {
+        _syncStatusText = 'No documents found to sync.';
+        _syncProgress = 1.0;
+        notifyListeners();
+        await Future.delayed(const Duration(seconds: 1));
+        return;
+      }
+
+      // Calculate total sub-tasks (PDF URL and Slip URL separately)
+      int totalTasks = 0;
+      for (final doc in docsToSync) {
+        if (doc.isPdf) totalTasks++;
+        if (doc.isSlip) totalTasks++;
+      }
+
+      if (totalTasks == 0) {
+        _syncStatusText = 'No files to download.';
+        _syncProgress = 1.0;
+        notifyListeners();
+        await Future.delayed(const Duration(seconds: 1));
+        return;
+      }
+
+      final box = Hive.box<Uint8List>('offline_documents');
+      int completedTasks = 0;
+
+      for (final doc in docsToSync) {
+        // 1. Download PDF book if present
+        if (doc.isPdf) {
+          final String path = doc.pdfUrl!;
+          _syncStatusText = 'Syncing PDF: ${doc.title}';
+          notifyListeners();
+
+          try {
+            Uint8List? bytes;
+            if (path.startsWith('http')) {
+              bytes = await _documentRepository.downloadFileBytes(path);
+            } else {
+              // Local asset file
+              final byteData = await rootBundle.load(path);
+              bytes = byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes);
+            }
+
+            if (bytes != null) {
+              await box.put('${doc.id}_pdf', bytes);
+            }
+          } catch (e) {
+            debugPrint('Error syncing PDF for doc ${doc.id}: $e');
+          }
+
+          completedTasks++;
+          _syncProgress = completedTasks / totalTasks;
+          notifyListeners();
+        }
+
+        // 2. Download Correction Slip if present
+        if (doc.isSlip) {
+          final String path = doc.slipUrl!;
+          _syncStatusText = 'Syncing Slip: ${doc.title}';
+          notifyListeners();
+
+          try {
+            Uint8List? bytes;
+            if (path.startsWith('http')) {
+              bytes = await _documentRepository.downloadFileBytes(path);
+            } else {
+              // Local asset file
+              final byteData = await rootBundle.load(path);
+              bytes = byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes);
+            }
+
+            if (bytes != null) {
+              await box.put('${doc.id}_slip', bytes);
+            }
+          } catch (e) {
+            debugPrint('Error syncing Slip for doc ${doc.id}: $e');
+          }
+
+          completedTasks++;
+          _syncProgress = completedTasks / totalTasks;
+          notifyListeners();
+        }
+      }
+
+      _syncStatusText = 'Sync completed successfully!';
+      _syncProgress = 1.0;
+      notifyListeners();
+      await Future.delayed(const Duration(seconds: 1));
+    } catch (e) {
+      _syncStatusText = 'Sync failed: $e';
+      notifyListeners();
+      await Future.delayed(const Duration(seconds: 2));
+    } finally {
+      _isSyncing = false;
+      notifyListeners();
+    }
   }
 }

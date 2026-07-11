@@ -68,7 +68,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 _buildRoleCard(
                   context: context,
                   title: 'User Portal',
-                  subtitle: 'Read official rule books, access correction slips, and download PDF documents offline.',
+                  subtitle: 'Read official rule books, access correction slips, and sync documents for offline access.',
                   icon: Icons.menu_book_rounded,
                   gradient: AppTheme.primaryGradient,
                   onTap: () {

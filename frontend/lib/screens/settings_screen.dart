@@ -173,59 +173,94 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildSoftSectionHeader('Connection & API Preferences', isDark),
               const SizedBox(height: 8),
               _buildSoftCard(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Icon(Icons.cloud_sync_rounded, color: AppTheme.primaryBlue),
-                          const SizedBox(width: 16),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          Row(
                             children: [
-                              Text(
-                                'Live Production API',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : AppTheme.textLightPrimary,
-                                ),
-                              ),
-                              Text(
-                                'Fetch real-time data from mycbt.in',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: isDark ? AppTheme.textDarkSecondary : AppTheme.textLightSecondary,
-                                ),
+                              const Icon(Icons.cloud_sync_rounded, color: AppTheme.primaryBlue),
+                              const SizedBox(width: 16),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Live Production API',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark ? Colors.white : AppTheme.textLightPrimary,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Fetch real-time data from mycbt.in',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: isDark ? AppTheme.textDarkSecondary : AppTheme.textLightSecondary,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
+                          Switch(
+                            value: appState.useRemoteApi,
+                            activeColor: AppTheme.secondaryAmber,
+                            onChanged: (val) async {
+                              await appState.setUseRemoteApi(val);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      val
+                                          ? 'Switched to Live Production API'
+                                          : 'Switched to Offline Local Cache',
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                    backgroundColor: AppTheme.accentTeal,
+                                  ),
+                                );
+                              }
+                            },
+                          ),
                         ],
                       ),
-                      Switch(
-                        value: appState.useRemoteApi,
-                        activeColor: AppTheme.secondaryAmber,
-                        onChanged: (val) async {
-                          await appState.setUseRemoteApi(val);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  val
-                                      ? 'Switched to Live Production API'
-                                      : 'Switched to Offline Local Cache',
-                                ),
-                                duration: const Duration(seconds: 2),
-                                backgroundColor: AppTheme.accentTeal,
-                              ),
-                            );
-                          }
-                        },
+                    ),
+                    const Divider(height: 1, indent: 56),
+                    ListTile(
+                      leading: const Icon(Icons.delete_sweep_rounded, color: Colors.redAccent),
+                      title: Text(
+                        'Clear Offline Sync Cache',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : AppTheme.textLightPrimary,
+                        ),
                       ),
-                    ],
-                  ),
+                      subtitle: Text(
+                        'Delete all stored offline rule books and slips',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? AppTheme.textDarkSecondary : AppTheme.textLightSecondary,
+                        ),
+                      ),
+                      onTap: () async {
+                        await appState.clearOfflineCache();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Offline cache cleared successfully!'),
+                              backgroundColor: Colors.redAccent,
+                            ),
+                          );
+                        }
+                      },
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    ),
+                  ],
                 ),
                 isDark: isDark,
               ),
@@ -368,7 +403,7 @@ Last Updated: July 2026
 The WR & Slips mobile application operates primarily locally on employee devices. We store user configuration settings (such as name, role, email, and selected railway zone) directly on the device using shared preferences to provide offline-ready accessibility.
 
 2. Document Storage and Access
-Rule books, circulars, and correction slips are downloaded to the local document cache. This app does not access external contacts, location services, or personal files.
+Rule books, circulars, and correction slips are stored in the local Hive database for offline usage. This app does not access external contacts, location services, or personal files.
 
 3. Security
 We take security seriously. Since these files represent official railway rules, access controls limit admin uploads. Users should secure their device to prevent unauthorized deletion.

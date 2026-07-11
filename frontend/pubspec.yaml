@@ -39,6 +39,8 @@ dependencies:
   dio: ^5.3.3
   syncfusion_flutter_pdfviewer: ^30.2.6
   provider: ^6.0.5
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
 
 dev_dependencies:
   flutter_test:
