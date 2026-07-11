@@ -402,15 +402,15 @@ class AppState with ChangeNotifier {
         return;
       }
 
-      // Calculate total sub-tasks (PDF URL and Slip URL separately)
+      // Calculate total sub-tasks (PDF URL and Slip URL separately, only for API documents starting with http)
       int totalTasks = 0;
       for (final doc in docsToSync) {
-        if (doc.isPdf) totalTasks++;
-        if (doc.isSlip) totalTasks++;
+        if (doc.isPdf && doc.pdfUrl!.startsWith('http')) totalTasks++;
+        if (doc.isSlip && doc.slipUrl!.startsWith('http')) totalTasks++;
       }
 
       if (totalTasks == 0) {
-        _syncStatusText = 'No files to download.';
+        _syncStatusText = 'No API files found to download.';
         _syncProgress = 1.0;
         notifyListeners();
         await Future.delayed(const Duration(seconds: 1));
@@ -421,22 +421,14 @@ class AppState with ChangeNotifier {
       int completedTasks = 0;
 
       for (final doc in docsToSync) {
-        // 1. Download PDF book if present
-        if (doc.isPdf) {
+        // 1. Download PDF book if present and is from API
+        if (doc.isPdf && doc.pdfUrl!.startsWith('http')) {
           final String path = doc.pdfUrl!;
           _syncStatusText = 'Syncing PDF: ${doc.title}';
           notifyListeners();
 
           try {
-            Uint8List? bytes;
-            if (path.startsWith('http')) {
-              bytes = await _documentRepository.downloadFileBytes(path);
-            } else {
-              // Local asset file
-              final byteData = await rootBundle.load(path);
-              bytes = byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes);
-            }
-
+            Uint8List? bytes = await _documentRepository.downloadFileBytes(path);
             if (bytes != null) {
               await box.put('${doc.id}_pdf', bytes);
             }
@@ -449,22 +441,14 @@ class AppState with ChangeNotifier {
           notifyListeners();
         }
 
-        // 2. Download Correction Slip if present
-        if (doc.isSlip) {
+        // 2. Download Correction Slip if present and is from API
+        if (doc.isSlip && doc.slipUrl!.startsWith('http')) {
           final String path = doc.slipUrl!;
           _syncStatusText = 'Syncing Slip: ${doc.title}';
           notifyListeners();
 
           try {
-            Uint8List? bytes;
-            if (path.startsWith('http')) {
-              bytes = await _documentRepository.downloadFileBytes(path);
-            } else {
-              // Local asset file
-              final byteData = await rootBundle.load(path);
-              bytes = byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes);
-            }
-
+            Uint8List? bytes = await _documentRepository.downloadFileBytes(path);
             if (bytes != null) {
               await box.put('${doc.id}_slip', bytes);
             }
